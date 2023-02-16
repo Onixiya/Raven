@@ -4,9 +4,10 @@ using Il2CppAssets.Scripts.Models.Towers.Weapons.Behaviors;
 namespace Raven{
     public class AutoTurret:SC2Tower{
         public override string Name=>"AutoTurret";
+        public override Faction TowerFaction=>Faction.Terran;
         public override bool Upgradable=>false;
         public override bool AddToShop=>false;
-        public override TowerModel[]TowerModels(){
+        public override TowerModel[]GenerateTowerModels(){
             return new TowerModel[]{
                 Base()
             };

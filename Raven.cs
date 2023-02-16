@@ -16,7 +16,10 @@ namespace Raven{
     }
     public class Raven:SC2Tower{
         public override string Name=>"Raven";
-        public override UpgradeModel[]Upgrades(){
+        public override string Description=>"Terran flying support. Buffs range and gives camo detection to nearby towers";
+        public override Faction TowerFaction=>Faction.Terran;
+        public override int MaxTier=>4;
+        public override UpgradeModel[]GenerateUpgradeModels(){
             return new UpgradeModel[]{
                 new("Seeker Missile",900,0,new(){guidRef="Ui[Raven-SeekerMissileIcon]"},0,0,0,"","Seeker Missile"),
                 new("Theia",2025,0,new(){guidRef="Ui[Raven-TheiaIcon]"},0,1,0,"","Theia"),
@@ -33,7 +36,7 @@ namespace Raven{
         public class RavenBehavior:MonoBehaviour{
             public RavenBehavior(IntPtr ptr):base(ptr){}
             float Timer=0;
-            public void Update(){
+            void Update(){
                 Timer+=Time.fixedDeltaTime;
                 if(Timer>10){
                     if(GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("Raven-Stand")){
@@ -74,7 +77,7 @@ namespace Raven{
         }
         public static string BuffId="Ui[Raven-RangeBuffIcon]";
         public override ShopTowerDetailsModel ShopDetails(){
-            ShopTowerDetailsModel details=Game.instance.model.towerSet[0].Clone<ShopTowerDetailsModel>();
+            ShopTowerDetailsModel details=gameModel.towerSet[0].Clone<ShopTowerDetailsModel>();
             details.towerId=Name;
             details.name=Name;
             details.towerIndex=14;
@@ -82,18 +85,18 @@ namespace Raven{
             details.pathTwoMax=0;
             details.pathThreeMax=0;
             details.popsRequired=0;
-            List<BuffIndicatorModel>buffs=Game.instance.model.buffIndicatorModels.ToList();
+            List<BuffIndicatorModel>buffs=gameModel.buffIndicatorModels.ToList();
             BuffIndicatorModel buff=new BuffIndicatorModel("RavenRangeBuff",BuffId,BuffId,false,0,false);
             buffs.Add(buff);
-            Game.instance.model.buffIndicatorModels=buffs.ToArray();
+            gameModel.buffIndicatorModels=buffs.ToArray();
             GameData.Instance.buffIconSprites.buffIconSprites.Add(new(){buffId=BuffId,icon=new(){guidRef=BuffId}});
-            LocalizationManager.Instance.textTable.Add("Seeker Missile Description","Deploys fast and high damage missiles with target tracking");
-            LocalizationManager.Instance.textTable.Add("Theia Description","Advanced Dominion Raven. Places down automatic turrets nearby and increases range");
-            LocalizationManager.Instance.textTable.Add("Corvid Reactor Description","Upgraded Raven reactor, allows for much quicker Seeker Missile and Auto Turret production");
-            LocalizationManager.Instance.textTable.Add("Science Vessel Description","Manned science craft and predecessor to the Raven. Replaces Seeker Missile with Irradiate, dealing high damage to non Moabs");
+            LocManager.textTable.Add("Seeker Missile Description","Deploys fast and high damage missiles with target tracking");
+            LocManager.textTable.Add("Theia Description","Advanced Dominion Raven. Places down automatic turrets nearby and increases range");
+            LocManager.textTable.Add("Corvid Reactor Description","Upgraded Raven reactor, allows for much quicker Seeker Missile and Auto Turret production");
+            LocManager.textTable.Add("Science Vessel Description","Manned science craft and predecessor to the Raven. Replaces Seeker Missile with Irradiate, dealing high damage to non Moabs");
             return details;
         }
-        public override TowerModel[]TowerModels(){
+        public override TowerModel[]GenerateTowerModels(){
             return new TowerModel[]{
                 Base(),
                 Seeker(),
@@ -103,7 +106,7 @@ namespace Raven{
             };
         }
         public TowerModel Base(){
-            TowerModel raven=Game.instance.model.GetTowerFromId("DartMonkey").Clone<TowerModel>();
+            TowerModel raven=gameModel.GetTowerFromId("DartMonkey").Clone<TowerModel>();
             raven.name=Name;
             raven.baseId=raven.name;
             raven.towerSet=TowerSet.Support;
@@ -135,7 +138,7 @@ namespace Raven{
             raven.tiers=new[]{1,0,0};
             raven.appliedUpgrades=new(new[]{"Seeker Missile"});
             List<Model>ravenBehav=raven.behaviors.ToList();
-            AttackModel seeker=Game.instance.model.GetTowerFromId("BombShooter").behaviors.GetModel<AttackModel>().Clone<AttackModel>();
+            AttackModel seeker=gameModel.GetTowerFromId("BombShooter").behaviors.GetModel<AttackModel>().Clone<AttackModel>();
             seeker.name="Seeker";
             seeker.range=raven.range+15;
             seeker.weapons[0].rate=22.5f;
@@ -209,7 +212,7 @@ namespace Raven{
             List<Model>ravenBehav=raven.behaviors.ToList();
             ravenBehav.GetModel<DisplayModel>().ignoreRotation=true;
             ravenBehav.Remove(ravenBehav.First(a=>a.name=="AttackModel_Seeker"));
-            AttackModel irradiate=Game.instance.model.GetTowerFromId("GlueGunner-200").behaviors.GetModel<AttackModel>().Clone<AttackModel>();
+            AttackModel irradiate=gameModel.GetTowerFromId("GlueGunner-200").behaviors.GetModel<AttackModel>().Clone<AttackModel>();
             irradiate.name="Irradiate";
             irradiate.range=raven.range;
             WeaponModel weapon=irradiate.weapons[0];
@@ -232,7 +235,7 @@ namespace Raven{
             raven.behaviors=ravenBehav.ToArray();
             return raven;
         }
-        public override void Create(){
+        public override void Create(Tower tower){
             PlaySound("Raven-Birth");
         }
         public override void Upgrade(int tier,Tower tower){
