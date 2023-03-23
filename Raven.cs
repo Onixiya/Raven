@@ -27,32 +27,62 @@ namespace Raven{
                 new("Science Vessel",11140,0,new(){guidRef="Ui[Raven-ScienceVesselIcon]"},0,3,0,"","Science Vessel")
             };
         }
-        public override int MaxSelectQuote=>7;
-        public override int MaxUpgradeQuote=>4;
-        public override Dictionary<string,string>SoundNames=>new(){{"Raven","Raven-"},{"Theia","Raven-"},{"ScienceVessel","Raven-ScienceVessel"}};
-        public override Dictionary<string,Il2CppSystem.Type>Behaviours=>new(){{"Raven-Raven-Prefab",Il2CppType.Of<RavenBehavior>()},
-            {"Raven-Theia-Prefab",Il2CppType.Of<RavenBehavior>()}};
+        public override Dictionary<string,Il2CppSystem.Type>Components=>new(){{"Raven-Prefab",Il2CppType.Of<RavenCom>()}};
         [RegisterTypeInIl2Cpp]
-        public class RavenBehavior:MonoBehaviour{
-            public RavenBehavior(IntPtr ptr):base(ptr){}
-            float Timer=0;
+        public class RavenCom:MonoBehaviour{
+            public RavenCom(IntPtr ptr):base(ptr){}
+			public GameObject activeObj=null;
+			public GameObject raven=null;
+			public GameObject theia=null;
+			public GameObject sciVessel=null;
+            float timer=0;
+			int selectSound=0;
+			int upgradeSound=0;
+			void Start(){
+				raven=transform.GetChild(0).gameObject;
+				theia=transform.GetChild(1).gameObject;
+				sciVessel=transform.GetChild(2).gameObject;
+				theia.SetActive(false);
+				sciVessel.SetActive(false);
+				raven.transform.localPosition=new(0,0,0);
+				theia.transform.localPosition=new(0,0,0);
+				sciVessel.transform.localPosition=new(0,0,0);
+				activeObj=raven;
+			}
             void Update(){
-                Timer+=Time.fixedDeltaTime;
-                if(Timer>10){
-                    if(GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("Raven-Stand")){
+                timer+=Time.fixedDeltaTime;
+                if(timer>10){
+                    if(activeObj.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("Raven-Stand")){
                         switch(new System.Random().Next(1,101)){
                             case<16:
                                 if(gameObject.name.Contains("Theia")){
-                                    PlayAnimation(GetComponent<UnityDisplayNode>(),"Raven-Fidget"+new System.Random().Next(1,3),0.4f);
+                                    PlayAnimation(activeObj.GetComponent<Animator>(),"Raven-Fidget"+new System.Random().Next(1,3),0.4f);
                                 }else{
-                                    PlayAnimation(GetComponent<UnityDisplayNode>(),"Raven-Fidget"+new System.Random().Next(1,4),0.4f);
+                                    PlayAnimation(activeObj.GetComponent<Animator>(),"Raven-Fidget"+new System.Random().Next(1,4),0.4f);
                                 }
                                 break;
                         }
                     }
-                    Timer=0;
+                    timer=0;
                 }
             }
+			public void PlaySelectSound(){
+				if(selectSound>5){
+					selectSound=0;
+				}
+				selectSound+=1;
+				if(activeObj.name.Contains("Science")){
+					PlaySound("Raven-ScienceVesselSelect"+selectSound);
+				}else{
+					Log(selectSound);
+					PlaySound("Raven-Select"+selectSound);
+				}
+			}
+			public void PlayUpgradeSound(){
+				upgradeSound+=1;
+				selectSound=0;
+				PlaySound("Raven-Upgrade"+upgradeSound);
+			}
         }
         [HarmonyPatch(typeof(FilterInBaseTowerId),"FilterTowerModel")]
         public class FilterInBaseTowerIdFilterTower_Patch{
@@ -116,7 +146,7 @@ namespace Raven{
             raven.upgrades=new UpgradePathModel[]{new("Seeker Missile",Name+"-100")};
             raven.range=45;
             raven.radius=8;
-            raven.display=new(){guidRef="Raven-Raven-Prefab"};
+            raven.display=new(){guidRef="Raven-Prefab"};
             raven.icon=new(){guidRef="Ui[Raven-Icon]"};
             raven.instaIcon=raven.icon;
             raven.portrait=new(){guidRef="Ui[Raven-Portrait]"};
@@ -142,7 +172,7 @@ namespace Raven{
             seeker.name="Seeker";
             seeker.range=raven.range+15;
             seeker.weapons[0].rate=22.5f;
-            seeker.weapons[0].projectile.display=new(){guidRef="Raven-SeekerMissile-Prefab"};
+            seeker.weapons[0].projectile.display=new(){guidRef="Raven-SeekerPrefab"};
             seeker.weapons[0].projectile.behaviors.GetModel<CreateProjectileOnContactModel>().projectile.behaviors.GetModel<DamageModel>().damage=5;
             seeker.weapons[0].projectile.behaviors.GetModel<CreateProjectileOnContactModel>().projectile.radius=16;
             ravenBehav.Add(seeker);
@@ -156,7 +186,6 @@ namespace Raven{
             raven.tier=2;
             raven.tiers=new[]{2,0,0};
             raven.range+=10;
-            raven.display=new(){guidRef="Raven-Theia-Prefab"};
             raven.portrait=new(){guidRef="Ui[Raven-TheiaPortrait]"};
             raven.behaviors.GetModel<DisplayModel>().display=raven.display;
             raven.appliedUpgrades=new(new[]{"Seeker Missile","Theia"});
@@ -174,7 +203,7 @@ namespace Raven{
             WeaponModel weapon=createTurret.weapons[0];
             weapon.rate=15;
             ProjectileModel proj=weapon.projectile;
-            proj.display=new(){guidRef="AutoTurret-Projectile-Prefab"};
+            proj.display=new(){guidRef="AutoTurret-ProjectilePrefab"};
             Il2CppReferenceArray<Model>projBehav=proj.behaviors;
             ArriveAtTargetModel arriveTarget=projBehav.GetModel<ArriveAtTargetModel>();
             arriveTarget.expireOnArrival=true;
@@ -205,7 +234,6 @@ namespace Raven{
             raven.name=Name+"-400";
             raven.tier=4;
             raven.tiers=new[]{4,0,0};
-            raven.display=new(){guidRef="Raven-ScienceVessel-Prefab"};
             raven.portrait=new(){guidRef="Ui[Raven-ScienceVesselPortrait]"};
             raven.appliedUpgrades=new(new[]{"Seeker Missile","Theia","Corvid Reactor","Science Vessel"});
             raven.upgrades=new UpgradePathModel[0];
@@ -239,26 +267,34 @@ namespace Raven{
             PlaySound("Raven-Birth");
         }
         public override void Upgrade(int tier,Tower tower){
+			RavenCom com=tower.Node.graphic.gameObject.GetComponent<RavenCom>();
             switch(tier){
-                case 3:
-                    PlaySound("Raven-Upgrade3");
-                    break;
+				case 2:
+					com.activeObj.SetActive(false);
+					com.activeObj=com.theia;
+					com.activeObj.SetActive(true);
+					tower.Node.graphic.gameObject.GetComponent<RavenCom>().PlayUpgradeSound();
+					break;
                 case 4:
+					com.activeObj.SetActive(false);
+					com.activeObj=com.sciVessel;
+					com.activeObj.SetActive(true);
                     PlaySound("Raven-ScienceVesselBirth");
                     break;
                 default:
-                    tower.Node.graphic.gameObject.GetComponent<SC2Sound>().PlayUpgradeSound();
+                    tower.Node.graphic.gameObject.GetComponent<RavenCom>().PlayUpgradeSound();
                     break;
             }
         }
         public override void Select(Tower tower){
-            tower.Node.graphic.gameObject.GetComponent<SC2Sound>().PlaySelectSound();
+            tower.Node.graphic.gameObject.GetComponent<RavenCom>().PlaySelectSound();
         }
         public override void Attack(Weapon weapon){
-            PlayAnimation(weapon.attack.tower.Node.graphic,"Raven-Attack");
+            PlayAnimation(weapon.attack.tower.Node.graphic.GetComponent<RavenCom>().activeObj.GetComponent<Animator>(),"Raven-Attack");
         }
-        public override void Ability(string ability,Tower tower){
-            PlayAnimation(tower.Node.graphic,"Raven-Attack");
+        public override bool Ability(string ability,Tower tower){
+            PlayAnimation(tower.Node.graphic.GetComponent<RavenCom>().activeObj.GetComponent<Animator>(),"Raven-Attack");
+			return true;
         }
     }
 }
