@@ -16,7 +16,6 @@ namespace Raven{
     }
     public class Raven:SC2Tower{
         public override string Name=>"Raven";
-        public override string Description=>"Terran flying support. Buffs range and gives camo detection to nearby towers";
         public override Faction TowerFaction=>Faction.Terran;
         public override int MaxTier=>4;
         public override UpgradeModel[]GenerateUpgradeModels(){
@@ -89,7 +88,7 @@ namespace Raven{
             [HarmonyPrefix]
             //__instance.entity.blahblahblah is the tower with the filter, towerModel is the tower thats being filtered out or in
             public static bool Prefix(FilterInBaseTowerId __instance,ref bool __result,TowerModel towerModel){
-                if(__instance.entity.dependants[0].Cast<RangeSupport>().tower.towerModel.baseId!="Raven"){
+                if(__instance.entity.dependants.list[0].Cast<RangeSupport>().tower.towerModel.baseId!="Raven"){
                     if(__instance.filterInBaseTowerIdModel.baseIds.Contains(towerModel.baseId)){
                         __result=true;
                     }else{
@@ -120,6 +119,7 @@ namespace Raven{
             buffs.Add(buff);
             gameModel.buffIndicatorModels=buffs.ToArray();
             GameData.Instance.buffIconSprites.buffIconSprites.Add(new(){buffId=BuffId,icon=new(){guidRef=BuffId}});
+			LocManager.textTable.Add("Raven Description","Terran flying support. Buffs range and gives camo detection to nearby towers");
             LocManager.textTable.Add("Seeker Missile Description","Deploys fast and high damage missiles with target tracking");
             LocManager.textTable.Add("Theia Description","Advanced Dominion Raven. Places down automatic turrets nearby and increases range");
             LocManager.textTable.Add("Corvid Reactor Description","Upgraded Raven reactor, allows for much quicker Seeker Missile and Auto Turret production");
@@ -157,7 +157,7 @@ namespace Raven{
             ravenBehav.Remove(ravenBehav.First(a=>a.GetIl2CppType().Name=="AttackModel"));
             ravenBehav.Add(new RangeSupportModel("RangeSupportModel",true,0.15f,0,BuffId,
                 new(new[]{new FilterInBaseTowerIdModel("TowerFilter",new(new[]{""}))}),false,BuffId,BuffId));
-            ravenBehav.Add(new VisibilitySupportModel("VisibilitySupportModel",true,"RavenVisibility",null,"",""));
+            ravenBehav.Add(new VisibilitySupportModel("VisibilitySupportModel",true,BuffId,false,null,BuffId,BuffId));
             raven.behaviors=ravenBehav.ToArray();
             return raven;
         }

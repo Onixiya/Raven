@@ -54,8 +54,8 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>/home/silentstorm/.steam/steam/steamapps/common/BloonsTD6/MelonLoader/Il2CppAssemblies/UnityEngine.UI.dll</HintPath>
     </Reference>
-    <EmbeddedResource Include="Bundles/raven.bundle" Link="raven.bundle"/>
-    <EmbeddedResource Include="Bundles/autoturret.bundle" Link="autoturret.bundle"/>
-    <EmbeddedResource Include="Bundles/ravenclips.bundle" Link="ravenclips.bundle"/>
+    <EmbeddedResource Include="Bundles/raven.bundle"/>
+    <EmbeddedResource Include="Bundles/autoturret.bundle"/>
+    <EmbeddedResource Include="Bundles/ravenclips.bundle"/>
   </ItemGroup>
 </Project>
