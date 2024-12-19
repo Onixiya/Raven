@@ -28,4 +28,6 @@ global using Il2CppAssets.Scripts.Models.Bloons.Behaviors;
 global using Il2CppAssets.Scripts.Models.Towers.Projectiles;
 global using Il2CppAssets.Scripts.Simulation.Towers.Behaviors;
 global using Il2CppAssets.Scripts.Simulation.Towers.TowerFilters;
+global using Il2CppAssets.Scripts.Models.Towers.Weapons.Behaviors;
+global using Il2CppAssets.Scripts.Data.Bloons;
 namespace Raven{}
