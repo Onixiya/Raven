@@ -80,6 +80,7 @@ namespace Raven{
         }
         public TowerModel Base(){
             TowerModel raven=gameModel.GetTowerFromId("DartMonkey").Clone<TowerModel>();
+            raven.mods=new(0);
             raven.name=Name;
             raven.baseId=raven.name;
             raven.towerSet=TowerSet.Support;
