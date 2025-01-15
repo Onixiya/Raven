@@ -8,6 +8,7 @@ namespace Raven{
         public override Faction TowerFaction=>Faction.Terran;
         public override int MaxTier=>4;
         public override int Order=>1;
+        public override string BundleName=>"raven.bundle";
         public override Dictionary<string,Il2CppSystem.Type>Components=>new(){{Name+"-TurretGunPrefab",Il2CppType.Of<AutoTurret.AutoTurretCom>()}};
         public override UpgradeModel[]GenerateUpgradeModels(){
             return new UpgradeModel[]{
