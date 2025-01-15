@@ -1,4 +1,4 @@
-global using SC2ExpansionLoader;
+global using SC2Expansion;
 global using Il2CppAssets.Scripts.Models.Towers;
 global using MelonLoader;
 global using MelonLoader.Utils;
@@ -10,7 +10,7 @@ global using Il2CppNinjaKiwi.Common;
 global using Il2CppAssets.Scripts.Models.GenericBehaviors;
 global using Il2CppAssets.Scripts.Simulation.Towers;
 global using Il2CppAssets.Scripts.Simulation.Towers.Weapons;
-global using static SC2ExpansionLoader.ModMain;
+global using static SC2Expansion.ModMain;
 global using Il2CppInterop.Runtime;
 global using Il2CppAssets.Scripts.Unity.Display;
 global using Il2CppAssets.Scripts.Models;

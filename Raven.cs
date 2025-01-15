@@ -4,11 +4,11 @@ namespace Raven{
     public class SC2ModMain:MelonMod{
     }
     public class Raven:SC2Tower{
-        public override string Name=>"Raven";
+        public override string Name=>"SC2Raven";
         public override Faction TowerFaction=>Faction.Terran;
         public override int MaxTier=>4;
         public override int Order=>1;
-        public override Dictionary<string,Il2CppSystem.Type>Components=>new(){{"Raven-TurretGunPrefab",Il2CppType.Of<AutoTurret.AutoTurretCom>()}};
+        public override Dictionary<string,Il2CppSystem.Type>Components=>new(){{Name+"-TurretGunPrefab",Il2CppType.Of<AutoTurret.AutoTurretCom>()}};
         public override UpgradeModel[]GenerateUpgradeModels(){
             return new UpgradeModel[]{
                 new("Seeker Missile",900,0,new("Ui["+Name+"-SeekerMissileIcon]"),0,0,0,"","Seeker Missile"),
@@ -17,28 +17,19 @@ namespace Raven{
                 new("Science Vessel",11140,0,new("Ui["+Name+"-ScienceVesselIcon]"),0,3,0,"","Science Vessel")
             };
         }
-        [HarmonyPatch(typeof(FilterInBaseTowerId),nameof(FilterInBaseTowerId.FilterTowerModel))]
-        public class FilterInBaseTowerIdFilterTower_Patch{
-            //__instance.entity.blahblahblah is the tower with the filter, towerModel is the tower thats being filtered out or in
-            public static bool Prefix(FilterInBaseTowerId __instance,ref bool __result,TowerModel towerModel){
-                if(__instance.entity.dependants.list[0].Cast<RangeSupport>().tower.towerModel.baseId!="Raven"){
-                    if(__instance.filterInBaseTowerIdModel.baseIds.Contains(towerModel.baseId)){
-                        __result=true;
-                    }else{
-                        __result=false;
+        [HarmonyPatch(typeof(Support),nameof(Support.AddMutator))]
+        public class SupportAddMutator_Patch{
+            public static bool Prefix(ref Support __instance,ref Tower behavior){
+                if(__instance.Model.name=="Raven"){
+                    if(behavior.towerModel.baseId=="Raven"){
+                        return false;
                     }
-                }else{
-                    if(towerModel.baseId=="Raven"){
-                        __result=false;
-                    }else{
-                        __result=true;
-                    }
+                    return true;
                 }
-                return false;
+                return true;
             }
         }
-        //static field cannot contain the name field
-        public static string BuffId="Ui[Raven-RangeBuffIcon]";
+        static string BuffName="Raven-RangeBuff";
         public override ShopTowerDetailsModel ShopDetails(){
             ShopTowerDetailsModel details=gameModel.towerSet[0].Clone<ShopTowerDetailsModel>();
             details.towerId=Name;
@@ -52,16 +43,17 @@ namespace Raven{
             BloonOverlayScriptable gas=ScriptableObject.CreateInstance<BloonOverlayScriptable>();
             gas.assets=new();
             for(int i=0;i<glueKeys.Count;i++){
-                gas.assets.Add((Il2Cpp.BloonOverlayClass)glueKeys[i],new("Raven-GasPrefab"));
+                gas.assets.Add((Il2Cpp.BloonOverlayClass)glueKeys[i],new(Name+"-GasPrefab"));
             }
             gas.displayLayer=1;
-            gas.name="Raven-Gas";
-            overlays.Add("Raven-Gas",gas);
+            gas.name=Name+"-Gas";
+            overlays.Add(Name+"-Gas",gas);
             List<BuffIndicatorModel>buffs=gameModel.buffIndicatorModels.ToList();
-            BuffIndicatorModel buff=new BuffIndicatorModel(Name+"RangeBuff",BuffId,BuffId,false,0,false);
+            BuffIndicatorModel buff=new BuffIndicatorModel(BuffName,BuffName,BuffName,false,0,false);
             buffs.Add(buff);
             gameModel.buffIndicatorModels=buffs.ToArray();
-            GameData.Instance.buffIconSprites.buffIconSprites.Add(new(){buffId=BuffId,icon=new(BuffId)});
+            GameData.Instance.buffIconSprites.buffIconSprites.Add(new(){buffId=BuffName,icon=new("Ui["+Name+"-RangeBuffIcon]")});
+            LocManager.textTable.Add(Name,"Raven");
 			LocManager.textTable.Add(Name+" Description","Terran flying support. Buffs range and gives camo detection to nearby towers");
             LocManager.textTable.Add("Seeker Missile Description","Deploys fast and high damage missiles with target tracking");
             LocManager.textTable.Add("Theia Description","Advanced Dominion Raven. Places down automatic turrets nearby and increases range");
@@ -99,10 +91,9 @@ namespace Raven{
             display.display=raven.display;
             display.positionOffset=new(0,0,190);
             ravenBehav.RemoveModel<AttackModel>();
-            ravenBehav.Add(new RangeSupportModel("RangeSupportModel",true,0.15f,0,BuffId,
-                new(new[]{new FilterInBaseTowerIdModel("TowerFilter",new(new[]{""}))}),false,BuffId,BuffId));
-            ravenBehav.Add(new VisibilitySupportModel("VisibilitySupportModel",true,BuffId,false,null,BuffId,BuffId));
-            ravenBehav.Add(SelectedSoundModel);
+            ravenBehav.Add(new RangeSupportModel(Name+"Range",true,0.15f,0,BuffName,null,false,BuffName,BuffName));
+            ravenBehav.Add(new VisibilitySupportModel(Name+"Visibility",true,Name+"-VisibilityBuff",false,null,null,null));
+            ravenBehav.Add(SelectedSoundModel.Clone());
             raven.behaviors=ravenBehav.ToArray();
             SetSounds(raven,Name+"-",true,true,true,false);
             return raven;
@@ -114,7 +105,7 @@ namespace Raven{
             raven.tiers=new[]{1,0,0};
             raven.appliedUpgrades=new(new[]{"Seeker Missile"});
             List<Model>ravenBehav=raven.behaviors.ToList();
-            AttackModel seeker=gameModel.GetTowerFromId("BombShooter").behaviors.GetModel<AttackModel>().Clone<AttackModel>();
+            AttackModel seeker=gameModel.GetTowerFromId("BombShooter").behaviors.GetModelClone<AttackModel>();
             seeker.name="Seeker";
             seeker.range=raven.range+15;
             seeker.weapons[0].rate=22.5f;
@@ -159,7 +150,7 @@ namespace Raven{
             display.display=proj.display;
             display.delayedReveal=0;
             display.positionOffset=new(0,0,0);
-            projBehav.GetModel<CreateTowerModel>().tower=gameModel.GetTowerFromId("AutoTurret");
+            projBehav.GetModel<CreateTowerModel>().tower=TowerTypes["AutoTurret"].TowerModels[0];
             ravenBehav.Add(createTurret);
             raven.behaviors=ravenBehav.ToArray();
             return raven;
@@ -172,8 +163,8 @@ namespace Raven{
             raven.appliedUpgrades=new(new[]{"Seeker Missile","Theia","Corvid Reactor"});
             raven.upgrades=new UpgradePathModel[]{new("Science Vessel",Name+"-400")};
             Il2CppReferenceArray<Model>ravenBehav=raven.behaviors;
-            ravenBehav.GetModel<AttackModel>("AttackModel_Seeker").weapons[0].rate=12.5f;
-            ravenBehav.GetModel<AttackModel>("AttackModel_CreateTurret").weapons[0].rate=8;
+            ravenBehav.GetModel<AttackModel>("Seeker").weapons[0].rate=12.5f;
+            ravenBehav.GetModel<AttackModel>("CreateTurret").weapons[0].rate=8;
             CreateSoundOnUpgradeModel csoum=ravenBehav.GetModel<CreateSoundOnUpgradeModel>();
             csoum.sound=new(Name+"-ScienceVesselBirth",new(Name+"-ScienceVesselBirth"));
             csoum.sound1=csoum.sound;
@@ -199,8 +190,8 @@ namespace Raven{
             DisplayModel display=ravenBehav.GetModel<DisplayModel>();
             display.ignoreRotation=true;
             display.display=raven.display;
-            ravenBehav.Remove(ravenBehav.First(a=>a.name=="AttackModel_Seeker"));
-            AttackModel irradiate=gameModel.GetTowerFromId("GlueGunner-200").behaviors.GetModel<AttackModel>().Clone<AttackModel>();
+            ravenBehav.RemoveModel("Seeker");
+            AttackModel irradiate=gameModel.GetTowerFromId("GlueGunner-200").behaviors.GetModelClone<AttackModel>();
             irradiate.name="Irradiate";
             irradiate.range=raven.range;
             WeaponModel weapon=irradiate.weapons[0];
@@ -209,22 +200,22 @@ namespace Raven{
             proj.display=new("");
             List<Model>projBehav=proj.behaviors.ToList();
             projBehav.RemoveModel<CreateSoundOnProjectileCollisionModel>();
-            projBehav.GetModel<SlowModifierForTagModel>().slowId="Raven-Gas";
+            projBehav.GetModel<SlowModifierForTagModel>().slowId=Name+"-Gas";
             AddBehaviorToBloonModel addBehav=projBehav.GetModel<AddBehaviorToBloonModel>();
             addBehav.lifespan=15;
-            addBehav.overlayType="Raven-Gas";
+            addBehav.overlayType=Name+"-Gas";
             DamageOverTimeModel dotModel=addBehav.behaviors.First(a=>a.GetIl2CppType().Name=="DamageOverTimeModel").Cast<DamageOverTimeModel>();
             dotModel.Interval=1.1f;
             dotModel.damage=10;
             dotModel.damageModifierModels.AddItem(new DamageModifierForTagModel("DamageModifierForTagModel","Moab",0.5f,0,false,true));
             SlowModel slow=projBehav.GetModel<SlowModel>();
             slow.multiplier=1;
-            slow.overlayType="Raven-Gas";
+            slow.overlayType=Name+"-Gas";
             slow.overlayLayer=1;
-            slow.mutationId="Raven-Gas";
+            slow.mutationId=Name+"-Gas";
             slow.Mutator.multiplier=slow.multiplier;
             slow.Mutator.overlayType=slow.overlayType;
-            slow.Mutator.id="Raven-Gas";
+            slow.Mutator.id=Name+"-Gas";
             proj.behaviors=projBehav.ToArray();
             ravenBehav.Add(irradiate);
             raven.behaviors=ravenBehav.ToArray();
