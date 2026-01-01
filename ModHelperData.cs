@@ -1,6 +1,6 @@
 namespace Raven{
     public static class ModHelperData{
-        public const string WorksOnVersion="46.3";
+        public const string WorksOnVersion="52.2";
         public const string Version="1.2.1";
         public const string Name="Raven";
         public const string Description="Adds the Raven from Starcraft 2 as a magic tower into BTD6";
