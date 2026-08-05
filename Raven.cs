@@ -44,7 +44,7 @@ namespace Raven{
             BloonOverlayScriptable gas=ScriptableObject.CreateInstance<BloonOverlayScriptable>();
             gas.assets=new();
             for(int i=0;i<glueKeys.Count;i++){
-                gas.assets.Add((Il2Cpp.BloonOverlayClass)glueKeys[i],new(Name+"-GasPrefab"));
+                gas.assets.Add(glueKeys[i],new(Name+"-GasPrefab"));
             }
             gas.displayLayer=1;
             gas.name=Name+"-Gas";
@@ -92,7 +92,7 @@ namespace Raven{
             display.display=raven.display;
             display.positionOffset=new(0,0,190);
             ravenBehav.RemoveModel<AttackModel>();
-            ravenBehav.Add(new RangeSupportModel(Name+"Range",true,0.15f,0,BuffName,null,false,BuffName,BuffName));
+            ravenBehav.Add(new RangeSupportModel(Name+"Range",true,1,0.15f,0,BuffName,null,false,BuffName,BuffName));
             ravenBehav.Add(new VisibilitySupportModel(Name+"Visibility",true,Name+"-VisibilityBuff",false,null,null,null));
             ravenBehav.Add(SelectedSoundModel.Clone());
             raven.behaviors=ravenBehav.ToArray();
